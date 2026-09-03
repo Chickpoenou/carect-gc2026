@@ -7,9 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initHeroSearch();
   initLibraryFilters();
   initRouter();
+  loadAdminData();
   initDocumentation();
   renderActualites();
   renderPromotionCardsHome();
+  initAdmin();
 });
 
 /* ==========================================================================
@@ -374,7 +376,7 @@ function showDocEpreuves(matiereNom){
             <span class="titre">${doc.titre}</span>
             <span class="sous-titre">${doc.sousTitre}</span>
           </div>
-          <a href="#" class="document-dl" aria-label="Ouvrir le PDF — ${doc.titre}">↓</a>
+          <a href="${doc.url || '#'}" class="document-dl" aria-label="Ouvrir le PDF — ${doc.titre}" target="_blank" rel="noopener">↓</a>
         </div>`).join('');
 
       return `
@@ -513,4 +515,355 @@ function applyLibraryFilters(chipMatiere){
   if (noResults){
     noResults.hidden = visibleCount !== 0;
   }
+}
+
+/* ==========================================================================
+   8. Administration (démo — authentification et stockage locaux)
+   ⚠️ Ceci n'est PAS une vraie sécurité : le mot de passe est visible dans le
+   code source. Les modifications ne sont sauvegardées que dans CE navigateur
+   (localStorage), pas partagées avec les autres visiteurs. À remplacer par
+   un vrai backend (ex. Supabase) avant toute mise en ligne publique.
+   ========================================================================== */
+const ADMIN_PASSWORD = 'caret2025';
+let editingMatiere = null; // { promo, semestre, categorie, index } | null
+let editingEpreuve = null; // { matiereNom, annee, index } | null
+
+function initAdmin(){
+  const toggle = document.getElementById('admin-toggle');
+  const panel = document.getElementById('admin-panel');
+  const loginBox = document.getElementById('admin-login');
+  const content = document.getElementById('admin-content');
+  const passwordInput = document.getElementById('admin-password');
+  const loginBtn = document.getElementById('admin-login-btn');
+  const logoutBtn = document.getElementById('admin-logout-btn');
+  if (!toggle || !panel) return;
+
+  toggle.addEventListener('click', () => {
+    panel.hidden = !panel.hidden;
+  });
+
+  if (sessionStorage.getItem('caretgc_admin_session') === 'true'){
+    loginBox.hidden = true;
+    content.hidden = false;
+    refreshAdminViews();
+  }
+
+  loginBtn.addEventListener('click', () => {
+    if (passwordInput.value === ADMIN_PASSWORD){
+      sessionStorage.setItem('caretgc_admin_session', 'true');
+      loginBox.hidden = true;
+      content.hidden = false;
+      passwordInput.value = '';
+      refreshAdminViews();
+    } else {
+      alert('Mot de passe incorrect. Contactez CARET-GC.');
+    }
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    sessionStorage.removeItem('caretgc_admin_session');
+    loginBox.hidden = false;
+    content.hidden = true;
+  });
+
+  document.getElementById('save-matiere-btn').addEventListener('click', saveMatiereFromForm);
+  document.getElementById('cancel-matiere-edit-btn').addEventListener('click', resetMatiereForm);
+  document.getElementById('save-epreuve-btn').addEventListener('click', saveEpreuveFromForm);
+  document.getElementById('cancel-epreuve-edit-btn').addEventListener('click', resetEpreuveForm);
+}
+
+/* --- Persistance (localStorage) ------------------------------------------ */
+function saveAdminData(){
+  localStorage.setItem('caretgc_matieres', JSON.stringify(MATIERES_DATA));
+  localStorage.setItem('caretgc_epreuves', JSON.stringify(EPREUVES_DATA));
+}
+
+function loadAdminData(){
+  try {
+    const savedMatieres = localStorage.getItem('caretgc_matieres');
+    if (savedMatieres) Object.assign(MATIERES_DATA, JSON.parse(savedMatieres));
+
+    const savedEpreuves = localStorage.getItem('caretgc_epreuves');
+    if (savedEpreuves) Object.assign(EPREUVES_DATA, JSON.parse(savedEpreuves));
+  } catch (err) {
+    console.warn('Impossible de charger les données admin sauvegardées :', err);
+  }
+}
+
+/* --- Rafraîchissement de toutes les vues concernées ----------------------- */
+function refreshAdminViews(){
+  renderAdminMatiereTable();
+  renderAdminEpreuveTable();
+  populateEpreuveMatiereSelect();
+  if (docState.promo && docState.semestre) renderMatiereGrid();
+}
+
+/* --- Matières : ajout / modification --------------------------------------*/
+function saveMatiereFromForm(){
+  const code = document.getElementById('new-code').value.trim();
+  const nom = document.getElementById('new-nom').value.trim();
+  const description = document.getElementById('new-description').value.trim();
+  const promo = document.getElementById('new-promo').value;
+  const semestre = document.getElementById('new-semestre').value;
+  const categorie = document.getElementById('new-categorie').value;
+  const credits = parseInt(document.getElementById('new-credits').value, 10) || 0;
+  const heures = parseInt(document.getElementById('new-heures').value, 10) || 0;
+  const tags = document.getElementById('new-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+
+  if (!code || !nom){
+    alert('Le code et le nom de la matière sont obligatoires.');
+    return;
+  }
+
+  if (!MATIERES_DATA[promo]) MATIERES_DATA[promo] = {};
+  if (!MATIERES_DATA[promo][semestre]) MATIERES_DATA[promo][semestre] = { ucf: [], uds: [], um: [] };
+  if (!MATIERES_DATA[promo][semestre][categorie]) MATIERES_DATA[promo][semestre][categorie] = [];
+
+  const matiereObj = { code, nom, description, credits, heures, tags: tags.length ? tags : ['à définir'] };
+
+  if (editingMatiere){
+    // Si la matière a changé de promo/semestre/catégorie, on la retire de son ancien emplacement
+    const old = editingMatiere;
+    const sameSpot = old.promo === promo && old.semestre === semestre && old.categorie === categorie;
+    if (sameSpot){
+      MATIERES_DATA[promo][semestre][categorie][old.index] = matiereObj;
+    } else {
+      MATIERES_DATA[old.promo]?.[old.semestre]?.[old.categorie]?.splice(old.index, 1);
+      MATIERES_DATA[promo][semestre][categorie].push(matiereObj);
+    }
+  } else {
+    MATIERES_DATA[promo][semestre][categorie].push(matiereObj);
+  }
+
+  saveAdminData();
+  resetMatiereForm();
+  refreshAdminViews();
+}
+
+function resetMatiereForm(){
+  editingMatiere = null;
+  document.getElementById('new-code').value = '';
+  document.getElementById('new-nom').value = '';
+  document.getElementById('new-description').value = '';
+  document.getElementById('new-credits').value = '';
+  document.getElementById('new-heures').value = '';
+  document.getElementById('new-tags').value = '';
+  document.getElementById('matiere-form-title').textContent = '➕ Ajouter une matière';
+  document.getElementById('save-matiere-btn').textContent = 'Ajouter la matière';
+  document.getElementById('cancel-matiere-edit-btn').hidden = true;
+}
+
+function editMatiere(promo, semestre, categorie, index){
+  const m = MATIERES_DATA[promo]?.[semestre]?.[categorie]?.[index];
+  if (!m) return;
+
+  editingMatiere = { promo, semestre, categorie, index };
+  document.getElementById('new-code').value = m.code;
+  document.getElementById('new-nom').value = m.nom;
+  document.getElementById('new-description').value = m.description || '';
+  document.getElementById('new-promo').value = promo;
+  document.getElementById('new-semestre').value = semestre;
+  document.getElementById('new-categorie').value = categorie;
+  document.getElementById('new-credits').value = m.credits || '';
+  document.getElementById('new-heures').value = m.heures || '';
+  document.getElementById('new-tags').value = (m.tags || []).join(', ');
+
+  document.getElementById('matiere-form-title').textContent = `✏️ Modifier — ${m.nom}`;
+  document.getElementById('save-matiere-btn').textContent = 'Enregistrer les modifications';
+  document.getElementById('cancel-matiere-edit-btn').hidden = false;
+  document.getElementById('matiere-form-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function deleteMatiere(promo, semestre, categorie, index){
+  const m = MATIERES_DATA[promo]?.[semestre]?.[categorie]?.[index];
+  if (!m) return;
+  if (!confirm(`Supprimer la matière "${m.nom}" ?`)) return;
+
+  MATIERES_DATA[promo][semestre][categorie].splice(index, 1);
+  saveAdminData();
+  refreshAdminViews();
+}
+
+function renderAdminMatiereTable(){
+  const table = document.getElementById('admin-matiere-table');
+  if (!table) return;
+
+  const rows = [];
+  Object.entries(MATIERES_DATA).forEach(([promo, semestres]) => {
+    Object.entries(semestres).forEach(([semestre, categories]) => {
+      ['ucf', 'uds', 'um'].forEach(cat => {
+        (categories[cat] || []).forEach((m, index) => {
+          rows.push({ promo, semestre, cat, index, m });
+        });
+      });
+    });
+  });
+
+  const body = rows.length
+    ? rows.map(({ promo, semestre, cat, index, m }) => `
+        <tr>
+          <td><strong>${m.code}</strong></td>
+          <td>${m.nom}</td>
+          <td>${promo}</td>
+          <td>${semestre}</td>
+          <td>${cat.toUpperCase()}</td>
+          <td class="admin-row-actions">
+            <button type="button" class="btn-sm" data-edit-matiere="${promo}|${semestre}|${cat}|${index}">Modifier</button>
+            <button type="button" class="btn-sm btn-sm-primary" data-delete-matiere="${promo}|${semestre}|${cat}|${index}">Supprimer</button>
+          </td>
+        </tr>`).join('')
+    : `<tr class="admin-empty-row"><td colspan="6">Aucune matière enregistrée.</td></tr>`;
+
+  table.innerHTML = `
+    <thead><tr><th>Code</th><th>Nom</th><th>Promo</th><th>Sem.</th><th>Cat.</th><th>Actions</th></tr></thead>
+    <tbody>${body}</tbody>`;
+
+  table.querySelectorAll('[data-edit-matiere]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const [promo, semestre, cat, index] = btn.dataset.editMatiere.split('|');
+      editMatiere(promo, semestre, cat, Number(index));
+    });
+  });
+  table.querySelectorAll('[data-delete-matiere]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const [promo, semestre, cat, index] = btn.dataset.deleteMatiere.split('|');
+      deleteMatiere(promo, semestre, cat, Number(index));
+    });
+  });
+}
+
+/* --- Épreuves : ajout / modification --------------------------------------*/
+function populateEpreuveMatiereSelect(){
+  const select = document.getElementById('new-epreuve-matiere');
+  if (!select) return;
+
+  const noms = new Set();
+  Object.values(MATIERES_DATA).forEach(semestres => {
+    Object.values(semestres).forEach(categories => {
+      ['ucf', 'uds', 'um'].forEach(cat => (categories[cat] || []).forEach(m => noms.add(m.nom)));
+    });
+  });
+
+  const current = select.value;
+  select.innerHTML = Array.from(noms).sort().map(nom => `<option value="${nom}">${nom}</option>`).join('');
+  if (noms.has(current)) select.value = current;
+}
+
+function saveEpreuveFromForm(){
+  const matiereNom = document.getElementById('new-epreuve-matiere').value;
+  const annee = document.getElementById('new-epreuve-annee').value.trim();
+  const titre = document.getElementById('new-epreuve-titre').value.trim();
+  const sousTitre = document.getElementById('new-epreuve-type').value.trim() || 'Sujet uniquement';
+  const url = document.getElementById('new-epreuve-url').value.trim() || '#';
+
+  if (!matiereNom || !annee || !titre){
+    alert('La matière, l\u2019année et le titre sont obligatoires.');
+    return;
+  }
+
+  if (!EPREUVES_DATA[matiereNom]) EPREUVES_DATA[matiereNom] = {};
+  if (!EPREUVES_DATA[matiereNom][annee]) EPREUVES_DATA[matiereNom][annee] = [];
+
+  const epreuveObj = { titre, sousTitre, url };
+
+  if (editingEpreuve){
+    const old = editingEpreuve;
+    const sameSpot = old.matiereNom === matiereNom && old.annee === annee;
+    if (sameSpot){
+      EPREUVES_DATA[matiereNom][annee][old.index] = epreuveObj;
+    } else {
+      EPREUVES_DATA[old.matiereNom]?.[old.annee]?.splice(old.index, 1);
+      EPREUVES_DATA[matiereNom][annee].push(epreuveObj);
+    }
+  } else {
+    EPREUVES_DATA[matiereNom][annee].push(epreuveObj);
+  }
+
+  saveAdminData();
+  resetEpreuveForm();
+  refreshAdminViews();
+  if (docState.matiereNom === matiereNom) showDocEpreuves(matiereNom);
+}
+
+function resetEpreuveForm(){
+  editingEpreuve = null;
+  document.getElementById('new-epreuve-annee').value = '';
+  document.getElementById('new-epreuve-titre').value = '';
+  document.getElementById('new-epreuve-type').value = '';
+  document.getElementById('new-epreuve-url').value = '';
+  document.getElementById('epreuve-form-title').textContent = '➕ Ajouter une épreuve';
+  document.getElementById('save-epreuve-btn').textContent = 'Ajouter l\u2019épreuve';
+  document.getElementById('cancel-epreuve-edit-btn').hidden = true;
+}
+
+function editEpreuve(matiereNom, annee, index){
+  const e = EPREUVES_DATA[matiereNom]?.[annee]?.[index];
+  if (!e) return;
+
+  editingEpreuve = { matiereNom, annee, index };
+  document.getElementById('new-epreuve-matiere').value = matiereNom;
+  document.getElementById('new-epreuve-annee').value = annee;
+  document.getElementById('new-epreuve-titre').value = e.titre;
+  document.getElementById('new-epreuve-type').value = e.sousTitre;
+  document.getElementById('new-epreuve-url').value = e.url && e.url !== '#' ? e.url : '';
+
+  document.getElementById('epreuve-form-title').textContent = `✏️ Modifier — ${e.titre}`;
+  document.getElementById('save-epreuve-btn').textContent = 'Enregistrer les modifications';
+  document.getElementById('cancel-epreuve-edit-btn').hidden = false;
+  document.getElementById('epreuve-form-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function deleteEpreuve(matiereNom, annee, index){
+  const e = EPREUVES_DATA[matiereNom]?.[annee]?.[index];
+  if (!e) return;
+  if (!confirm(`Supprimer l\u2019épreuve "${e.titre}" ?`)) return;
+
+  EPREUVES_DATA[matiereNom][annee].splice(index, 1);
+  if (EPREUVES_DATA[matiereNom][annee].length === 0) delete EPREUVES_DATA[matiereNom][annee];
+  saveAdminData();
+  refreshAdminViews();
+  if (docState.matiereNom === matiereNom) showDocEpreuves(matiereNom);
+}
+
+function renderAdminEpreuveTable(){
+  const table = document.getElementById('admin-epreuve-table');
+  if (!table) return;
+
+  const rows = [];
+  Object.entries(EPREUVES_DATA).forEach(([matiereNom, annees]) => {
+    Object.entries(annees).forEach(([annee, docs]) => {
+      docs.forEach((doc, index) => rows.push({ matiereNom, annee, index, doc }));
+    });
+  });
+
+  const body = rows.length
+    ? rows.map(({ matiereNom, annee, index, doc }) => `
+        <tr>
+          <td>${doc.titre}</td>
+          <td>${matiereNom}</td>
+          <td>${annee}</td>
+          <td>${doc.sousTitre}</td>
+          <td class="admin-row-actions">
+            <button type="button" class="btn-sm" data-edit-epreuve="${matiereNom}|${annee}|${index}">Modifier</button>
+            <button type="button" class="btn-sm btn-sm-primary" data-delete-epreuve="${matiereNom}|${annee}|${index}">Supprimer</button>
+          </td>
+        </tr>`).join('')
+    : `<tr class="admin-empty-row"><td colspan="5">Aucune épreuve enregistrée.</td></tr>`;
+
+  table.innerHTML = `
+    <thead><tr><th>Titre</th><th>Matière</th><th>Année</th><th>Type</th><th>Actions</th></tr></thead>
+    <tbody>${body}</tbody>`;
+
+  table.querySelectorAll('[data-edit-epreuve]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const [matiereNom, annee, index] = btn.dataset.editEpreuve.split('|');
+      editEpreuve(matiereNom, annee, Number(index));
+    });
+  });
+  table.querySelectorAll('[data-delete-epreuve]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const [matiereNom, annee, index] = btn.dataset.deleteEpreuve.split('|');
+      deleteEpreuve(matiereNom, annee, Number(index));
+    });
+  });
 }

@@ -308,6 +308,88 @@
         </div>
 
         <div class="domaine-grid" id="promotion-grid"><!-- généré en JS --></div>
+
+        <div class="admin-gate">
+          <button type="button" class="btn btn-secondary" id="admin-toggle">🔧 Administration CARET-GC</button>
+        </div>
+
+        <div class="admin-panel" id="admin-panel" hidden>
+
+          <div class="admin-login" id="admin-login">
+            <h3>Connexion administrateur</h3>
+            <p class="admin-hint">Réservé aux membres CARET-GC. Version démo — mot de passe local uniquement.</p>
+            <div class="admin-login-row">
+              <input type="password" id="admin-password" placeholder="Mot de passe">
+              <button type="button" class="btn btn-primary" id="admin-login-btn">Se connecter</button>
+            </div>
+          </div>
+
+          <div class="admin-content" id="admin-content" hidden>
+            <div class="admin-content-head">
+              <h3>Espace administrateur</h3>
+              <button type="button" class="btn btn-secondary btn-sm" id="admin-logout-btn">Se déconnecter</button>
+            </div>
+
+            <!-- Ajouter / modifier une matière -->
+            <div class="admin-block">
+              <h4 id="matiere-form-title">➕ Ajouter une matière</h4>
+              <div class="admin-form-grid">
+                <input type="text" id="new-code" placeholder="Code (ex : GEC 1601)">
+                <input type="text" id="new-nom" placeholder="Nom de la matière">
+                <input type="text" id="new-description" placeholder="Description courte">
+                <select id="new-promo">
+                  <option value="GC3">GC3</option>
+                  <option value="GC4">GC4</option>
+                  <option value="GC5">GC5</option>
+                </select>
+                <select id="new-semestre">
+                  <option value="S5">S5</option><option value="S6">S6</option>
+                  <option value="S7">S7</option><option value="S8">S8</option>
+                  <option value="S9">S9</option><option value="S10">S10</option>
+                </select>
+                <select id="new-categorie">
+                  <option value="ucf">UCF — Fondamentale</option>
+                  <option value="uds">UDS — Spécialité</option>
+                  <option value="um">UM — Méthodologie</option>
+                </select>
+                <input type="number" id="new-credits" placeholder="Crédits" min="0">
+                <input type="number" id="new-heures" placeholder="Heures" min="0">
+                <input type="text" id="new-tags" placeholder="Tags séparés par des virgules">
+              </div>
+              <div class="admin-form-actions">
+                <button type="button" class="btn btn-primary" id="save-matiere-btn">Ajouter la matière</button>
+                <button type="button" class="btn btn-secondary" id="cancel-matiere-edit-btn" hidden>Annuler la modification</button>
+              </div>
+            </div>
+
+            <div class="admin-block">
+              <h4>📚 Matières existantes</h4>
+              <div class="admin-table-wrap"><table class="admin-table" id="admin-matiere-table"></table></div>
+            </div>
+
+            <!-- Ajouter / modifier une épreuve -->
+            <div class="admin-block">
+              <h4 id="epreuve-form-title">➕ Ajouter une épreuve</h4>
+              <div class="admin-form-grid">
+                <select id="new-epreuve-matiere"></select>
+                <input type="text" id="new-epreuve-annee" placeholder="Année (ex : 2025-2026)">
+                <input type="text" id="new-epreuve-titre" placeholder="Titre de l'épreuve">
+                <input type="text" id="new-epreuve-type" placeholder="Type (ex : Sujet + corrigé type)">
+                <input type="url" id="new-epreuve-url" placeholder="Lien du PDF (optionnel)">
+              </div>
+              <div class="admin-form-actions">
+                <button type="button" class="btn btn-primary" id="save-epreuve-btn">Ajouter l'épreuve</button>
+                <button type="button" class="btn btn-secondary" id="cancel-epreuve-edit-btn" hidden>Annuler la modification</button>
+              </div>
+            </div>
+
+            <div class="admin-block">
+              <h4>📄 Épreuves existantes</h4>
+              <div class="admin-table-wrap"><table class="admin-table" id="admin-epreuve-table"></table></div>
+            </div>
+
+          </div>
+        </div>
       </div>
     </div>
 
