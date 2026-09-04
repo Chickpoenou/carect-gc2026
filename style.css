@@ -254,8 +254,31 @@ img{ max-width: 100%; display: block; }
    Hero
    ========================================================================== */
 .hero{
-  padding: 64px 0 72px;
+  position: relative;
+  overflow: hidden;
+  padding: 96px 0 108px;
+  isolation: isolate;
 }
+.hero-bg{
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+.hero-bg-slide{
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center 30%;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+.hero-bg-slide.is-active{ opacity: 1; }
+.hero-bg-overlay{
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(26,37,47,.62) 0%, rgba(26,37,47,.50) 45%, rgba(26,37,47,.68) 100%);
+}
+
 .hero-inner{
   display: grid;
   grid-template-columns: 1.5fr 1fr;
@@ -270,8 +293,9 @@ img{ max-width: 100%; display: block; }
   font-family: var(--font-mono);
   font-size: 0.82rem;
   font-weight: 500;
-  color: var(--bleu-roi-fonce);
-  background: #EAEDEF;
+  color: var(--blanc);
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.25);
   border-radius: 999px;
   padding: 6px 14px;
   margin-bottom: 22px;
@@ -283,16 +307,18 @@ img{ max-width: 100%; display: block; }
   font-size: clamp(2.2rem, 3.8vw, 3.5rem);
   line-height: 1.12;
   letter-spacing: -0.01em;
-  color: var(--texte-principal);
+  color: var(--blanc);
   max-width: 16ch;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.45);
 }
 
 .hero-lede{
   margin-top: 20px;
   font-size: 1.1rem;
-  color: var(--texte-attenue);
+  color: rgba(255,255,255,0.92);
   max-width: 52ch;
   line-height: 1.65;
+  text-shadow: 0 1px 10px rgba(0,0,0,0.4);
 }
 
 /* --- Carte de recherche --- */
@@ -301,8 +327,9 @@ img{ max-width: 100%; display: block; }
   background: var(--blanc);
   border: 1px solid var(--gris-bordure);
   border-radius: var(--rayon);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.18);
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr auto;
+  grid-template-columns: 1.8fr 1fr auto;
   align-items: stretch;
   overflow: hidden;
 }
@@ -357,6 +384,7 @@ img{ max-width: 100%; display: block; }
   border-radius: var(--rayon);
   padding: 20px 22px;
   border-left: 3px solid var(--bleu-roi);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.16);
 }
 .stat-number{
   display: block;
@@ -591,7 +619,7 @@ img{ max-width: 100%; display: block; }
 
 .matiere-grid{
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
 
@@ -606,6 +634,22 @@ img{ max-width: 100%; display: block; }
 .matiere-card:hover{
   border-color: var(--bleu-roi);
   transform: translateY(-2px);
+}
+
+.promo-card-media{
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  margin: -24px -22px 18px;
+  border-radius: var(--rayon) var(--rayon) 0 0;
+  border-bottom: 1px solid var(--gris-bordure);
+  background: var(--gris-technique);
+}
+.promo-card-media img{
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
 }
 
 .matiere-card-niveau{
@@ -677,10 +721,61 @@ img{ max-width: 100%; display: block; }
   padding: 76px 0;
   background: var(--blanc);
 }
-.activite-grid{
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+/* ==========================================================================
+   Carrousel horizontal (Nos activités / Actualités — aperçu)
+   ========================================================================== */
+.carousel{
+  position: relative;
+}
+.carousel-track{
+  display: flex;
   gap: 20px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.carousel-track::-webkit-scrollbar{ display: none; }
+.carousel-track > *{
+  flex: 0 0 calc((100% - 40px) / 3);
+  min-width: 0;
+  scroll-snap-align: start;
+}
+.carousel-arrow{
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--gris-bordure);
+  background: var(--blanc);
+  color: var(--texte-principal);
+  font-size: 1.3rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.14);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.carousel-arrow:hover{ border-color: var(--bleu-roi); color: var(--bleu-roi); }
+.carousel-arrow[hidden]{ display: none; }
+.carousel-arrow-left{ left: -22px; }
+.carousel-arrow-right{ right: -22px; }
+
+@media (max-width: 900px){
+  .carousel-track > *{ flex: 0 0 calc((100% - 20px) / 2); }
+  .carousel-arrow-left{ left: -18px; }
+  .carousel-arrow-right{ right: -18px; }
+}
+@media (max-width: 640px){
+  .carousel-track > *{ flex: 0 0 86%; }
+  .carousel-arrow-left{ left: 4px; }
+  .carousel-arrow-right{ right: 4px; }
 }
 .activite-card{
   border-radius: var(--rayon);
@@ -726,9 +821,6 @@ img{ max-width: 100%; display: block; }
   opacity: 0.8;
 }
 
-@media (max-width: 900px){
-  .activite-grid{ grid-template-columns: 1fr; }
-}
 
 /* ==========================================================================
    Matières — bouton d'appel
@@ -1597,3 +1689,37 @@ img{ max-width: 100%; display: block; }
   .admin-panel{ padding: 18px; }
   .admin-login-row{ flex-direction: column; }
 }
+
+/* ==========================================================================
+   Nos activités — version compacte (liste réelle, pas de cartes chiffrées)
+   ========================================================================== */
+.activite-grid-compact{
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+.activite-item{
+  padding: 22px 4px;
+  border-top: 3px solid var(--rouge-vif);
+}
+.activite-item h3{
+  font-family: var(--font-titres);
+  font-weight: 700;
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  margin-bottom: 10px;
+  color: var(--texte-principal);
+}
+.activite-item p{
+  font-size: 0.92rem;
+  color: var(--texte-attenue);
+  line-height: 1.55;
+}
+@media (max-width: 860px){
+  .activite-grid-compact{ grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px){
+  .activite-grid-compact{ grid-template-columns: 1fr; }
+}
+
+

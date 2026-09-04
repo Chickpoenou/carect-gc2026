@@ -53,13 +53,18 @@
   <section class="view is-active" data-view="accueil">
 
     <div class="hero">
+      <div class="hero-bg" aria-hidden="true">
+        <div class="hero-bg-slide is-active" style="background-image:url('anime1.jpg')"></div>
+        <div class="hero-bg-slide" style="background-image:url('anime2.jpg')"></div>
+        <div class="hero-bg-overlay"></div>
+      </div>
       <div class="wrap hero-inner">
 
         <div class="hero-content">
-          <span class="eyebrow">Cadre de Réflexion et d'Entraide des Étudiants en Génie Civil</span>
+          <span class="eyebrow">Cercle d'Action et de Réflexion des Etudiants du Génie Civil</span>
           <h1>Réussissez votre cycle ingénieur <span class="accent-text">Génie Civil</span> à l'EPAC</h1>
           <p class="hero-lede">
-            CARET-GC accompagne les étudiants <strong>de la 3ème à la 5ème année</strong>
+            Le CARET GC accompagne les étudiants <strong>de la 3ème à la 5ème année</strong>
             (GC3 à GC5) du cycle ingénieur à l'École Polytechnique d'Abomey-Calavi.
             La plateforme centralise les épreuves corrigées et les ressources
             pédagogiques par matière pour renforcer la préparation aux examens
@@ -72,20 +77,10 @@
               <input id="q" type="text" placeholder="Béton armé, hydraulique urbaine…">
             </div>
             <div class="search-field">
-              <label for="matiere">Matière</label>
-              <select id="matiere">
-                <option>Toutes les matières</option>
-                <option>Béton armé initial</option>
-                <option>Mécanique des sols initiale</option>
-                <option>Droit des Travaux Publics</option>
-                <option>Géotechnique et travaux routiers</option>
-                <option>Hydraulique Appliquée</option>
-              </select>
-            </div>
-            <div class="search-field">
               <label for="annee">Année</label>
               <select id="annee">
                 <option>Toutes</option>
+                <option>2025-2026</option>
                 <option>2024-2025</option>
                 <option>2023-2024</option>
                 <option>2022-2023</option>
@@ -102,7 +97,7 @@
 
         <aside class="hero-stats" aria-label="Chiffres clés">
           <div class="stat-card">
-            <span class="stat-number">236</span>
+            <span class="stat-number">200+</span>
             <span class="stat-label">étudiants GC3–GC5 représentés</span>
           </div>
           <div class="stat-card">
@@ -118,7 +113,6 @@
       </div>
     </div>
 
-    <!-- Résultats de la recherche rapide du Hero -->
     <section class="library" id="bibliotheque">
       <div class="wrap">
         <div class="section-head">
@@ -131,11 +125,7 @@
 
         <div class="chip-row" id="matiere-chips" role="group" aria-label="Filtrer par matière">
           <button type="button" class="chip is-active" data-matiere="Toutes les matières">Toutes</button>
-          <button type="button" class="chip" data-matiere="Béton armé initial">Béton armé initial</button>
-          <button type="button" class="chip" data-matiere="Mécanique des sols initiale">Mécanique des sols initiale</button>
-          <button type="button" class="chip" data-matiere="Droit des Travaux Publics">Droit des Travaux Publics</button>
-          <button type="button" class="chip" data-matiere="Géotechnique et travaux routiers">Géotechnique et travaux routiers</button>
-          <button type="button" class="chip" data-matiere="Hydraulique Appliquée">Hydraulique Appliquée</button>
+          <!-- puces générées en JS depuis MATIERES_DATA -->
         </div>
 
         <div class="library-card">
@@ -147,115 +137,81 @@
             <span></span>
           </div>
 
-          <div class="epreuve-row" data-matiere="Béton armé initial" data-annee="2024-2025" data-titre="béton armé dimensionnement sections">
-            <span class="code">GEC·1604</span>
-            <div class="titre">
-              Dimensionnement des sections
-              <span class="sous-titre">Sujet + corrigé type</span>
-            </div>
-            <span class="matiere-tag">Béton armé initial</span>
-            <span class="session">2024-2025</span>
-            <div class="row-actions">
-              <span class="badge badge-rouge">Nouveau</span>
-              <a href="#" class="dl-btn" aria-label="Télécharger">PDF ↓</a>
-            </div>
-          </div>
+          <div id="search-results-body"><!-- généré en JS --></div>
 
-          <div class="epreuve-row" data-matiere="Mécanique des sols initiale" data-annee="2024-2025" data-titre="géotechnique tassements">
-            <span class="code">GEC·1603</span>
-            <div class="titre">
-              Tassements et fondations
-              <span class="sous-titre">Sujet + corrigé</span>
-            </div>
-            <span class="matiere-tag">Mécanique des sols initiale</span>
-            <span class="session">2024-2025</span>
-            <div class="row-actions">
-              <a href="#" class="dl-btn" aria-label="Télécharger">PDF ↓</a>
-            </div>
-          </div>
-
-          <div class="epreuve-row" data-matiere="Droit des Travaux Publics" data-annee="2023-2024" data-titre="conduite de travaux planification">
-            <span class="code">DTP·2301</span>
-            <div class="titre">
-              Passation de marchés — étude de cas
-              <span class="sous-titre">Sujet uniquement</span>
-            </div>
-            <span class="matiere-tag">Droit des Travaux Publics</span>
-            <span class="session">2023-2024</span>
-            <div class="row-actions">
-              <a href="#" class="dl-btn" aria-label="Télécharger">PDF ↓</a>
-            </div>
-          </div>
-
-          <div class="epreuve-row" data-matiere="Géotechnique et travaux routiers" data-annee="2024-2025" data-titre="routes travaux routiers dimensionnement">
-            <span class="code">GTR·2206</span>
-            <div class="titre">
-              Dimensionnement de chaussée
-              <span class="sous-titre">Sujet + corrigé type</span>
-            </div>
-            <span class="matiere-tag">Géotechnique et travaux routiers</span>
-            <span class="session">2024-2025</span>
-            <div class="row-actions">
-              <span class="badge badge-vert">Corrigé disponible</span>
-              <a href="#" class="dl-btn" aria-label="Télécharger">PDF ↓</a>
-            </div>
-          </div>
-
-          <div class="epreuve-row" data-matiere="Hydraulique Appliquée" data-annee="2023-2024" data-titre="hydraulique appliquée assainissement">
-            <span class="code">GEC·2105</span>
-            <div class="titre">
-              Collecte et évacuation des eaux usées
-              <span class="sous-titre">Sujet + barème</span>
-            </div>
-            <span class="matiere-tag">Hydraulique Appliquée</span>
-            <span class="session">2023-2024</span>
-            <div class="row-actions">
-              <a href="#" class="dl-btn" aria-label="Télécharger">PDF ↓</a>
-            </div>
-          </div>
-
-          <p class="no-results" id="no-results" hidden>Aucune épreuve ne correspond à ces critères.</p>
+          <p class="no-results" id="no-results">Tapez une matière, un mot-clé, ou choisissez un filtre ci-dessus pour voir les épreuves correspondantes.</p>
         </div>
       </div>
     </section>
 
     <!-- Nos activités -->
-    <section class="activites">
+    <section class="activites" id="activites">
       <div class="wrap">
         <div class="section-head section-head-center">
           <span class="eyebrow eyebrow-inline">Nos activités</span>
           <h2>Bien plus qu'un cadre académique</h2>
-          <p class="section-desc">CARET-GC accompagne les étudiants en Génie Civil <strong>de la 3ème à la 5ème année</strong> à travers des activités concrètes : soutien académique, mentorat et vie associative.</p>
+          <p class="section-desc">Le CARET GC accompagne les étudiants en Génie Civil <strong>de la 3ème à la 5ème année</strong> à travers des activités concrètes : soutien académique, mentorat et vie associative.</p>
         </div>
 
-        <div class="activite-grid">
-          <div class="activite-card activite-card-bleu">
-            <span class="activite-num">01</span>
-            <h3>Travaux dirigés encadrés</h3>
-            <p>CARET-GC organise des séances de travaux dirigés pour les matières avancées du Génie Civil : béton armé, calcul des structures, routes, ouvrages d'art. Chaque session cible les points durs identifiés par les étudiants de GC3 à GC5.</p>
-            <ul>
-              <li>Séances hebdomadaires par matière</li>
-              <li>Exercices ciblés et préparation aux examens</li>
-            </ul>
+        <div class="carousel" data-carousel>
+          <button type="button" class="carousel-arrow carousel-arrow-left" data-carousel-prev aria-label="Activités précédentes" hidden>‹</button>
+          <div class="carousel-track" data-carousel-track>
+            <div class="activite-card activite-card-bleu">
+              <span class="activite-num">01</span>
+              <h3>Formations académiques &amp; logicielles</h3>
+              <p>Ateliers pour renforcer les compétences techniques et la prise en main des logiciels du Génie Civil.</p>
+              <ul>
+                <li>Ateliers logiciels (CAO, calcul)</li>
+                <li>Renforcement des compétences techniques</li>
+              </ul>
+            </div>
+            <div class="activite-card activite-card-rouge">
+              <span class="activite-num">02</span>
+              <h3>Conférences &amp; séminaires</h3>
+              <p>Rencontres avec des professionnels du secteur pour confronter la formation académique aux réalités du terrain.</p>
+              <ul>
+                <li>Intervenants professionnels du secteur</li>
+                <li>Formation académique face au terrain</li>
+              </ul>
+            </div>
+            <div class="activite-card activite-card-bleu">
+              <span class="activite-num">03</span>
+              <h3>Mentorat entre promotions</h3>
+              <p>Des étudiants de GC4 et GC5 accompagnent leurs cadets, désignés par classe et par promotion.</p>
+              <ul>
+                <li>Mentors GC4/GC5 désignés par classe</li>
+                <li>Accompagnement des promotions cadettes</li>
+              </ul>
+            </div>
+            <div class="activite-card activite-card-rouge">
+              <span class="activite-num">04</span>
+              <h3>Activités culturelles &amp; sportives</h3>
+              <p>Basket, football, journée des élèves ingénieurs en Génie Civil — la vie associative au sens large.</p>
+              <ul>
+                <li>Basket, football</li>
+                <li>Journée des élèves ingénieurs GC</li>
+              </ul>
+            </div>
+            <div class="activite-card activite-card-bleu">
+              <span class="activite-num">05</span>
+              <h3>Communication &amp; valorisation</h3>
+              <p>Faire rayonner CARET-GC et ses membres à travers nos différentes plateformes.</p>
+              <ul>
+                <li>Mise en valeur de CARET-GC</li>
+                <li>Présence sur nos plateformes</li>
+              </ul>
+            </div>
+            <div class="activite-card activite-card-rouge">
+              <span class="activite-num">06</span>
+              <h3>Accompagnement aux soutenances</h3>
+              <p>Un appui aux étudiants dans la préparation de leurs soutenances de fin de cycle.</p>
+              <ul>
+                <li>Préparation aux soutenances</li>
+                <li>Appui aux étudiants de fin de cycle</li>
+              </ul>
+            </div>
           </div>
-          <div class="activite-card activite-card-rouge">
-            <span class="activite-num">02</span>
-            <h3>Mentorat entre promotions</h3>
-            <p>Un dispositif de mentorat où des étudiants de GC4 et GC5 accompagnent les étudiants de GC3 pour mieux s'organiser, progresser et réussir leurs projets.</p>
-            <ul>
-              <li>Mentors désignés par spécialité</li>
-              <li>Suivi méthodologique jusqu'aux projets de fin de cycle</li>
-            </ul>
-          </div>
-          <div class="activite-card activite-card-bleu">
-            <span class="activite-num">03</span>
-            <h3>Sorties techniques &amp; chantiers</h3>
-            <p>Des visites de chantiers et d'ouvrages d'art organisées tout au long de l'année pour confronter la théorie à la pratique du terrain.</p>
-            <ul>
-              <li>Visites encadrées par des professionnels</li>
-              <li>Échanges avec ingénieurs et entreprises partenaires</li>
-            </ul>
-          </div>
+          <button type="button" class="carousel-arrow carousel-arrow-right" data-carousel-next aria-label="Activités suivantes">›</button>
         </div>
       </div>
     </section>
@@ -265,7 +221,7 @@
       <div class="wrap">
         <div class="section-head">
           <div>
-            <span class="eyebrow eyebrow-inline">Organisation du fonds</span>
+            <span class="eyebrow eyebrow-inline">Organisation</span>
             <h2>Parcourir par promotion</h2>
           </div>
           <p class="section-desc">GC3, GC4 et GC5 — cycle ingénieur.</p>
@@ -280,14 +236,18 @@
     </section>
 
     <!-- Actualités (aperçu) -->
-    <section class="actualites-preview">
+    <section class="actualites-preview" id="actualites-apercu">
       <div class="wrap">
         <div class="section-head section-head-center">
           <span class="eyebrow eyebrow-inline">Actualités</span>
-          <h2>Les dernières nouvelles de CARET-GC</h2>
-          <p class="section-desc">Restez informé des événements, annonces et activités organisées par l'association.</p>
+          <h2>Les dernières nouvelles du CARET-GC</h2>
+          <p class="section-desc">Restez informé des événements, annonces et activités organisées par l'amicale.</p>
         </div>
-        <div class="actu-grid" id="actu-preview-grid"><!-- généré en JS --></div>
+        <div class="carousel" data-carousel>
+          <button type="button" class="carousel-arrow carousel-arrow-left" data-carousel-prev aria-label="Actualités précédentes" hidden>‹</button>
+          <div class="carousel-track" id="actu-preview-grid" data-carousel-track><!-- généré en JS --></div>
+          <button type="button" class="carousel-arrow carousel-arrow-right" data-carousel-next aria-label="Actualités suivantes" hidden>›</button>
+        </div>
       </div>
     </section>
 
@@ -351,6 +311,7 @@
                   <option value="ucf">UCF — Fondamentale</option>
                   <option value="uds">UDS — Spécialité</option>
                   <option value="um">UM — Méthodologie</option>
+                  <option value="ucg">UCG — Culture Générale</option>
                 </select>
                 <input type="number" id="new-credits" placeholder="Crédits" min="0">
                 <input type="number" id="new-heures" placeholder="Heures" min="0">
@@ -445,8 +406,8 @@
     <div class="wrap">
       <div class="section-head section-head-center">
         <span class="eyebrow eyebrow-inline">Actualités</span>
-        <h2>Les dernières nouvelles de CARET-GC</h2>
-        <p class="section-desc">Restez informé des événements, annonces et activités organisées par l'association.</p>
+        <h2>Les dernières nouvelles du CARET-GC</h2>
+        <p class="section-desc">Restez informé des événements, annonces et activités organisées par l'amicale.</p>
       </div>
       <div class="actu-grid" id="actu-full-grid"><!-- généré en JS --></div>
     </div>
@@ -460,7 +421,7 @@
       <div class="section-head section-head-center">
         <span class="eyebrow eyebrow-inline">Contact</span>
         <h2>Contactez CARET-GC</h2>
-        <p class="section-desc">Une question sur les épreuves, une suggestion ou envie de rejoindre l'équipe ? N'hésitez pas à nous écrire.</p>
+        <p class="section-desc">Une question sur les épreuves ou une suggestion ? N'hésitez pas à nous écrire.</p>
       </div>
 
       <div class="contact-grid">
@@ -507,7 +468,7 @@
           <span class="brand-mark" aria-hidden="true"><img src="caret-gc.png" alt="Logo CARET-GC"></span>
           CARET-GC
         </div>
-        <p>Cadre de Réflexion et d'Entraide des Étudiants en Génie Civil — au service de la réussite des étudiants GC3-GC5 de l'EPAC.</p>
+        <p>Cercle d'Action et de Réflexion des Etudiants du Génie Civil — au service de la réussite des étudiants GC3-GC5 de l'EPAC.</p>
       </div>
       <div>
         <h4>Navigation</h4>

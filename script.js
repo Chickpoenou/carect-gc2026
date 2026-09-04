@@ -4,14 +4,18 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   initMobileNav();
-  initHeroSearch();
-  initLibraryFilters();
-  initRouter();
   loadAdminData();
+  populateHeroMatiereFilters();
+  initHeroSearch();
+  initHeroBackgroundRotation();
+  initLibraryFilters();
+  applyLibraryFilters();
+  initRouter();
   initDocumentation();
   renderActualites();
   renderPromotionCardsHome();
   initAdmin();
+  initCarousels();
 });
 
 /* ==========================================================================
@@ -33,6 +37,58 @@ function initMobileNav(){
       toggle.setAttribute('aria-expanded', 'false');
     });
   });
+}
+
+/* ==========================================================================
+   1bis. Fond photo plein écran du hero (alternance douce entre 2 photos)
+   ========================================================================== */
+function initHeroBackgroundRotation(){
+  const slides = document.querySelectorAll('.hero-bg-slide');
+  if (slides.length < 2) return;
+  let current = 0;
+  setInterval(() => {
+    slides[current].classList.remove('is-active');
+    current = (current + 1) % slides.length;
+    slides[current].classList.add('is-active');
+  }, 6000);
+}
+
+/* ==========================================================================
+   1ter. Carrousels horizontaux (Nos activités / Actualités — aperçu)
+   Les flèches n'apparaissent que si le contenu dépasse réellement la
+   largeur visible — pas de flèche inutile quand tout tient déjà à l'écran.
+   ========================================================================== */
+function initCarousels(){
+  document.querySelectorAll('[data-carousel]').forEach(setupCarousel);
+}
+
+function setupCarousel(carousel){
+  const track = carousel.querySelector('[data-carousel-track]');
+  const prevBtn = carousel.querySelector('[data-carousel-prev]');
+  const nextBtn = carousel.querySelector('[data-carousel-next]');
+  if (!track || !prevBtn || !nextBtn) return;
+
+  function updateArrows(){
+    const canScroll = track.scrollWidth > track.clientWidth + 4;
+    prevBtn.hidden = !canScroll || track.scrollLeft <= 4;
+    nextBtn.hidden = !canScroll || track.scrollLeft >= track.scrollWidth - track.clientWidth - 4;
+  }
+
+  function scrollByOneCard(direction){
+    const firstCard = track.querySelector(':scope > *');
+    const gap = parseFloat(getComputedStyle(track).gap) || 0;
+    const amount = firstCard ? firstCard.getBoundingClientRect().width + gap : track.clientWidth * 0.8;
+    track.scrollBy({ left: direction * amount, behavior: 'smooth' });
+  }
+
+  prevBtn.addEventListener('click', () => scrollByOneCard(-1));
+  nextBtn.addEventListener('click', () => scrollByOneCard(1));
+  track.addEventListener('scroll', updateArrows);
+  window.addEventListener('resize', updateArrows);
+
+  updateArrows();
+  // Filet de sécurité si le contenu est injecté juste après (ex. Actualités).
+  setTimeout(updateArrows, 300);
 }
 
 /* ==========================================================================
@@ -74,9 +130,9 @@ function showView(viewName){
    3. Données officielles — maquette pédagogique EPAC (GC3 à GC5)
    ========================================================================== */
 const PROMOTIONS_DATA = {
-  GC3: { nom: 'GC3', annee: '3ème année', effectif: 98, semestres: ['S5', 'S6'] },
-  GC4: { nom: 'GC4', annee: '4ème année', effectif: 74, semestres: ['S7', 'S8'] },
-  GC5: { nom: 'GC5', annee: '5ème année', effectif: 64, semestres: ['S9', 'S10'] }
+  GC3: { nom: 'GC3', annee: '3ème année', effectif: '70+', semestres: ['S5', 'S6'], photo: 'photogc3-2025-2026.jpg' },
+  GC4: { nom: 'GC4', annee: '4ème année', effectif: '70+', semestres: ['S7', 'S8'], photo: 'photogc4-2025-2026.jpg' },
+  GC5: { nom: 'GC5', annee: '5ème année', effectif: '70+', semestres: ['S9', 'S10'], photo: 'photogc5-2025-2026.jpg' }
 };
 
 // Matières par promotion et semestre, groupées par type d'unité :
@@ -87,112 +143,141 @@ const MATIERES_DATA = {
   GC3: {
     S5: {
       ucf: [
-        { code: 'GEC 1601', nom: 'Hydraulique générale', description: 'Hydraulique en charge et à surface libre', credits: 4, heures: 50, tags: ['hydraulique', 'fondamental'] },
-        { code: 'GEC 1602', nom: 'Géophysique', description: 'Mécanique des sols appliquée à la géophysique', credits: 4, heures: 50, tags: ['géotechnique', 'fondamental'] }
+        { code: 'MMC 1501', nom: 'Mécanique des Milieux Continus', description: 'Calcul tensoriel ; Introduction à la Mécanique des Milieux Continus', credits: 5, heures: 125, tags: ['structures', 'fondamental'] },
+        { code: 'RMR 1502', nom: 'Résistance des Matériaux Renforcés', description: 'Résistance des matériaux renforcés', credits: 4, heures: 100, tags: ['structures', 'fondamental'] }
       ],
       uds: [
-        { code: 'GEC 1603', nom: 'Mécanique des sols initiale', description: 'Mécanique des sols — notions fondamentales', credits: 4, heures: 100, tags: ['géotechnique', 'spécialité'] },
-        { code: 'GEC 1604', nom: 'Béton armé initial', description: 'Béton armé — notions fondamentales', credits: 4, heures: 100, tags: ['structures', 'spécialité'] },
-        { code: 'GEC 1605', nom: 'Construction métallique initiale', description: 'Construction métallique — notions fondamentales', credits: 4, heures: 100, tags: ['structures', 'spécialité'] }
+        { code: 'MAC 1503', nom: 'Matériaux de construction', description: 'Matériaux de construction', credits: 4, heures: 100, tags: ['matériaux', 'spécialité'] },
+        { code: 'TOG 1504', nom: 'Topométrie générale', description: 'Topométrie générale', credits: 4, heures: 100, tags: ['topométrie', 'spécialité'] }
       ],
       um: [
-        { code: 'GEC 1606', nom: 'Hydrogéologie de l\u2019ingénieur', description: 'Hydrogéologie appliquée au génie civil', credits: 3, heures: 75, tags: ['hydraulique', 'méthodologie'] },
-        { code: 'GEC 1607', nom: 'Pratique Industrielle', description: 'Stage en milieu industriel (camp topo)', credits: 3, heures: 75, tags: ['pratique', 'stage'] }
+        { code: 'MFA 1505', nom: 'Mécanique des fluides Appliquées et Atelier de dessin et CAO-DAO', description: 'Mécanique des fluides Appliquées ; Atelier de dessin et CAO-DAO', credits: 5, heures: 125, tags: ['méthodologie'] },
+        { code: 'PGM 1506', nom: 'Procédés généraux de construction et Matériels de Construction', description: 'Procédés généraux de construction ; Matériels de construction', credits: 4, heures: 100, tags: ['méthodologie'] },
+        { code: 'EGE 1507', nom: 'Economie Générale', description: 'Economie Générale', credits: 2, heures: 50, tags: ['gestion', 'méthodologie'] }
+      ],
+      ucg: [
+        { code: 'ASI 1508', nom: 'Anglais Scientifique Initial', description: 'Anglais Scientifique Initial', credits: 2, heures: 50, tags: ['culture générale'] }
       ]
     },
     S6: {
-      ucf: [],
-      uds: [
-        { code: 'GEC 1608', nom: 'Résistance des matériaux II', description: 'Résistance des matériaux approfondie', credits: 4, heures: 75, tags: ['structures', 'fondamental'] },
-        { code: 'GEC 1609', nom: 'Géotechnique I', description: 'Géotechnique — applications pratiques', credits: 4, heures: 75, tags: ['géotechnique', 'spécialité'] }
+      ucf: [
+        { code: 'GEC 1601', nom: 'Hydraulique générale', description: 'Hydraulique en charge ; Hydraulique à surface libre', credits: 4, heures: 100, tags: ['hydraulique', 'fondamental'] },
+        { code: 'GEC 1602', nom: 'Géophysique', description: 'Géophysique', credits: 3, heures: 75, tags: ['géotechnique', 'fondamental'] }
       ],
-      um: []
+      uds: [
+        { code: 'GEC 1603', nom: 'Mécanique des sols Initiale', description: 'Mécanique des sols Initiale', credits: 4, heures: 100, tags: ['géotechnique', 'spécialité'] },
+        { code: 'GEC 1604', nom: 'Béton armé Initiale', description: 'Béton armé Initiale', credits: 4, heures: 100, tags: ['structures', 'spécialité'] },
+        { code: 'GEC 1605', nom: 'Construction métallique Initiale', description: 'Construction métallique Initiale', credits: 4, heures: 100, tags: ['structures', 'spécialité'] },
+        { code: 'GEC 1606', nom: 'Topométrie appliquée', description: 'Topométrie appliquée', credits: 3, heures: 75, tags: ['topométrie', 'spécialité'] }
+      ],
+      um: [
+        { code: 'GEC 1607', nom: 'Hydrologie de l’Ingénieur', description: 'Hydrologie de l’Ingénieur', credits: 3, heures: 75, tags: ['hydraulique', 'méthodologie'] },
+        { code: 'GEC 1608', nom: 'Pratique Industrielle', description: 'Stage en milieu industriel (camp topo) ; Cours séminaire (Plomberie, Electricité)', credits: 5, heures: 125, tags: ['pratique', 'stage'] }
+      ],
+      ucg: []
     }
   },
   GC4: {
     S7: {
       ucf: [],
       uds: [
-        { code: 'MDS 2101', nom: 'Mécanique des solides déformables', description: 'Mécanique des solides déformables', credits: 3, heures: 75, tags: ['structures', 'spécialité'] },
-        { code: 'GEC 2102', nom: 'Mécanique des sols avancée', description: 'Mécanique des sols approfondie', credits: 3, heures: 75, tags: ['géotechnique', 'spécialité'] },
-        { code: 'GEC 2103', nom: 'Béton armé avancé', description: 'Béton armé — niveau avancé', credits: 3, heures: 75, tags: ['structures', 'spécialité'] },
-        { code: 'GEC 2104', nom: 'Construction métallique avancée', description: 'Construction métallique — niveau avancé', credits: 4, heures: 100, tags: ['structures', 'spécialité'] },
-        { code: 'GEC 2105', nom: 'Hydraulique Appliquée', description: 'Collecte et évacuation des eaux usées', credits: 4, heures: 50, tags: ['hydraulique', 'spécialité'] },
-        { code: 'GEC 2106', nom: 'RDM Avancée', description: 'Structures hyperstatiques', credits: 4, heures: 50, tags: ['structures', 'spécialité'] },
-        { code: 'GEC 2107', nom: 'Route initiale et topométrie routière', description: 'Topométrie routière et routes', credits: 4, heures: 100, tags: ['routes', 'spécialité'] }
+        { code: 'MSD 1701', nom: 'Mécanique des solides déformables', description: 'Mécanique des solides déformables', credits: 3, heures: 75, tags: ['structures', 'spécialité'] },
+        { code: 'GEC 1702', nom: 'Mécanique des sols Avancés', description: 'Mécanique des sols Avancés', credits: 3, heures: 75, tags: ['géotechnique', 'spécialité'] },
+        { code: 'GEC 1703', nom: 'Béton armé Avancé', description: 'Béton armé Avancé', credits: 3, heures: 75, tags: ['structures', 'spécialité'] },
+        { code: 'GEC 1704', nom: 'Construction métallique Avancée', description: 'Construction métallique Avancée', credits: 4, heures: 100, tags: ['structures', 'spécialité'] },
+        { code: 'GEC 1705', nom: 'Hydraulique Appliquée', description: 'Assainissement pluvial ; Collecte et évacuation des eaux usées domestiques', credits: 4, heures: 100, tags: ['hydraulique', 'spécialité'] },
+        { code: 'GEC 1706', nom: 'RDM Avancée', description: 'Structures hyperstatiques ; Dynamique des structures élastiques', credits: 4, heures: 100, tags: ['structures', 'spécialité'] },
+        { code: 'GEC 1707', nom: 'Route Initiale et topométrie routière', description: 'Topométrie routière ; Route', credits: 4, heures: 100, tags: ['routes', 'spécialité'] }
       ],
       um: [
-        { code: 'CGAA 2108', nom: 'Comptabilité Générale et Analyse Économique', description: 'Économie Générale et Analyse Financière', credits: 4, heures: 100, tags: ['gestion', 'méthodologie'] }
-      ]
+        { code: 'GEC 1708', nom: 'Economie Générale', description: 'Economie Générale', credits: 2, heures: 50, tags: ['gestion', 'méthodologie'] },
+        { code: 'GEC 1709', nom: 'Analyse Economique et Financière', description: 'Analyse Economique et Financière', credits: 2, heures: 50, tags: ['gestion', 'méthodologie'] },
+        { code: 'GEC 1710', nom: 'Anglais scientifique Approfondi', description: 'Anglais scientifique Approfondi', credits: 1, heures: 25, tags: ['méthodologie'] }
+      ],
+      ucg: []
     },
     S8: {
       ucf: [],
       uds: [
-        { code: 'MSS 2201', nom: 'Modélisation des systèmes et simulation', description: 'Modélisation et simulation en génie civil', credits: 3, heures: 75, tags: ['modélisation', 'spécialité'] },
-        { code: 'MSA 2202', nom: 'Mécanique des sols approfondie', description: 'Mécanique des sols — niveau approfondi', credits: 3, heures: 75, tags: ['géotechnique', 'spécialité'] },
+        { code: 'MSS 2201', nom: 'Modélisation des systèmes et simulation', description: 'Modélisation des systèmes et simulation', credits: 3, heures: 75, tags: ['modélisation', 'spécialité'] },
+        { code: 'MSA 2202', nom: 'Mécanique des sols Approfondie', description: 'Mécanique des sols Approfondie', credits: 3, heures: 75, tags: ['géotechnique', 'spécialité'] },
         { code: 'COB 2203', nom: 'Construction en bois', description: 'Construction en bois', credits: 4, heures: 100, tags: ['structures', 'spécialité'] },
-        { code: 'CAB 2204', nom: 'Construction mixte acier-béton', description: 'Construction mixte acier-béton', credits: 4, heures: 100, tags: ['structures', 'spécialité'] },
+        { code: 'CAB 2204', nom: 'Construction Mixte Acier-Béton', description: 'Construction Mixte Acier-Béton', credits: 4, heures: 100, tags: ['structures', 'spécialité'] },
         { code: 'BEP 2205', nom: 'Béton précontraint', description: 'Béton précontraint', credits: 4, heures: 100, tags: ['structures', 'spécialité'] },
-        { code: 'GTR 2206', nom: 'Géotechnique et travaux routiers', description: 'Entretien, réhabilitation des routes et sécurité routière', credits: 5, heures: 125, tags: ['routes', 'spécialité'] }
+        { code: 'GTR 2206', nom: 'Géotechnique et Travaux routiers', description: 'Entretien, Réhabilitation des routes et sécurité routière ; Géotechnique routière', credits: 5, heures: 125, tags: ['routes', 'spécialité'] }
       ],
       um: [
-        { code: 'IRE 2207', nom: 'Initiation à la recherche', description: 'Méthodologie de recherche et écriture scientifique', credits: 3, heures: 75, tags: ['recherche', 'méthodologie'] },
-        { code: 'MGE 2208', nom: 'Marketing et Gestion d\u2019Entreprise', description: 'Marketing et Création d\u2019Entreprise', credits: 4, heures: 100, tags: ['gestion', 'méthodologie'] }
-      ]
+        { code: 'IRE 2207', nom: 'Initiation à la recherche', description: 'Méthodologie de recherche ; Ecriture scientifique', credits: 3, heures: 75, tags: ['recherche', 'méthodologie'] },
+        { code: 'MGE 2208', nom: 'Marketing et Gestion d’Entreprise', description: 'Marketing ; Création et Gestion d’Entreprise', credits: 4, heures: 100, tags: ['gestion', 'méthodologie'] }
+      ],
+      ucg: []
     }
   },
   GC5: {
     S9: {
       ucf: [],
       uds: [
-        { code: 'DTP 2301', nom: 'Droit des Travaux Publics', description: 'Passation de marchés et pratiques spécialisées', credits: 3, heures: 75, tags: ['droit', 'spécialité'] },
-        { code: 'SOP 2302', nom: 'Sortie pédagogique', description: 'Sortie pédagogique', credits: 3, heures: 75, tags: ['pratique', 'sortie'] },
-        { code: 'TPS 2303', nom: 'Travaux pratiques spécialisés', description: 'Travaux pratiques spécialisés', credits: 4, heures: 100, tags: ['pratique', 'spécialité'] },
-        { code: 'IEC 2304', nom: 'Introduction aux Eurocodes', description: 'Introduction aux Eurocodes', credits: 3, heures: 75, tags: ['normes', 'spécialité'] },
-        { code: 'CCP 2305', nom: 'Conception et Calcul de Ponts', description: 'Conception et calcul de ponts', credits: 4, heures: 100, tags: ['ponts', 'spécialité'] },
-        { code: 'PRC 2306', nom: 'Projet de Construction (BA et CM)', description: 'Projet de construction béton armé et construction métallique', credits: 4, heures: 100, tags: ['projet', 'spécialité'] },
-        { code: 'MEP 2307', nom: 'Métré et Étude de Prix', description: 'Métré et étude de prix', credits: 3, heures: 75, tags: ['économie', 'spécialité'] }
+        { code: 'GEC 1901', nom: 'Droits des Travaux publics', description: 'Marchés et Passation de marchés', credits: 3, heures: 75, tags: ['droit', 'spécialité'] },
+        { code: 'GEC 1902', nom: 'Sortie pédagogique', description: 'Sortie pédagogique', credits: 3, heures: 75, tags: ['pratique', 'sortie'] },
+        { code: 'GEC 1903', nom: 'Travaux Pratiques Spécialisés', description: 'Travaux pratiques spécialisés', credits: 4, heures: 100, tags: ['pratique', 'spécialité'] },
+        { code: 'GEC 1904', nom: 'CAO-DAO Appliqué', description: 'CAO-DAO Appliqué', credits: 3, heures: 75, tags: ['dessin', 'spécialité'] },
+        { code: 'GEC 1905', nom: 'Conception et Calcul de Ponts', description: 'Conception et calcul de ponts', credits: 4, heures: 100, tags: ['ponts', 'spécialité'] },
+        { code: 'GEC 1906', nom: 'Projet de Construction (BA et CM)', description: 'Projet de construction béton armé et construction métallique', credits: 4, heures: 100, tags: ['projet', 'spécialité'] },
+        { code: 'GEC 1907', nom: 'Métré et Estimation de Prix', description: 'Métré et estimation de prix', credits: 3, heures: 75, tags: ['économie', 'spécialité'] }
       ],
       um: [
-        { code: 'LET 2308', nom: 'Législation du travail', description: 'Législation du travail', credits: 1, heures: 25, tags: ['droit', 'méthodologie'] },
-        { code: 'MAP 2309', nom: 'Management des projets', description: 'Management des projets', credits: 2, heures: 50, tags: ['gestion', 'méthodologie'] },
-        { code: 'ENL 2310', nom: 'Entreprenariat et Leadership', description: 'Entreprenariat et Leadership', credits: 2, heures: 50, tags: ['gestion', 'méthodologie'] },
-        { code: 'EMC 2311', nom: 'Éco Matériaux de Construction', description: 'Éco Matériaux de Construction', credits: 1, heures: 25, tags: ['durabilité', 'méthodologie'] }
-      ]
+        { code: 'GEC 1908', nom: 'Législation du travail', description: 'Législation du travail', credits: 1, heures: 25, tags: ['droit', 'méthodologie'] },
+        { code: 'GEC 1909', nom: 'Management des projets', description: 'Management des projets', credits: 2, heures: 50, tags: ['gestion', 'méthodologie'] },
+        { code: 'GEC 1910', nom: 'Entreprenariat et Leadership', description: 'Entreprenariat et Leadership', credits: 2, heures: 50, tags: ['gestion', 'méthodologie'] },
+        { code: 'GEC 1911', nom: 'Anglais Spécialisé', description: 'Anglais Spécialisé', credits: 1, heures: 25, tags: ['méthodologie'] }
+      ],
+      ucg: []
     },
-    S10: { ucf: [], uds: [], um: [] }
+    S10: {
+      ucf: [], uds: [], um: [],
+      ucg: [
+        { code: 'STG 2001', nom: 'Stage de fin de formation', description: 'Stage / mémoire de fin de formation (semestre 10)', credits: 30, heures: 0, tags: ['stage', 'mémoire'] }
+      ]
+    }
   }
 };
 
 const CATEGORIES_LABELS = {
   ucf: 'Unités de Connaissances Fondamentales',
   uds: 'Unités de Découverte ou de Spécialité',
-  um: 'Unités de Méthodologie'
+  um: 'Unités de Méthodologie',
+  ucg: 'Unités de Culture Générale'
 };
 
 // Épreuves disponibles par matière (clé = nom exact de la matière ci-dessus)
 const EPREUVES_DATA = {
-  'Béton armé initial': {
+  'Béton armé Initiale': {
+    '2025-2026': [
+      { titre: 'Devoir 1 — Dimensionnement des sections', sousTitre: 'Sujet + corrigé type' }
+    ],
     '2024-2025': [
       { titre: 'Devoir — Dimensionnement des sections', sousTitre: 'Sujet + corrigé type' },
-      { titre: 'Examen semestriel — Béton armé initial', sousTitre: 'Sujet + barème' }
+      { titre: 'Examen semestriel — Béton armé Initiale', sousTitre: 'Sujet + barème' }
     ],
     '2023-2024': [
       { titre: 'Devoir — Flexion simple', sousTitre: 'Sujet + corrigé' }
     ]
   },
-  'Béton armé avancé': {
+  'Béton armé Avancé': {
     '2024-2025': [
-      { titre: 'Examen — Béton armé avancé', sousTitre: 'Sujet + corrigé type' }
+      { titre: 'Examen — Béton armé Avancé', sousTitre: 'Sujet + corrigé type' }
     ]
   },
-  'Mécanique des sols initiale': {
+  'Mécanique des sols Initiale': {
+    '2025-2026': [
+      { titre: 'Devoir 1 — Tassements et fondations', sousTitre: 'Sujet + corrigé' }
+    ],
     '2024-2025': [
       { titre: 'Devoir — Tassements', sousTitre: 'Sujet + corrigé' },
       { titre: 'Examen — Mécanique des sols', sousTitre: 'Sujet uniquement' }
     ]
   },
-  'Géotechnique et travaux routiers': {
+  'Géotechnique et Travaux routiers': {
     '2024-2025': [
       { titre: 'Devoir — Dimensionnement de chaussée', sousTitre: 'Sujet + corrigé type' }
     ]
@@ -204,7 +289,17 @@ const EPREUVES_DATA = {
   },
   'Hydraulique Appliquée': {
     '2023-2024': [
-      { titre: 'Devoir — Réseaux d\u2019assainissement', sousTitre: 'Sujet + barème' }
+      { titre: 'Devoir — Réseaux d’assainissement', sousTitre: 'Sujet + barème' }
+    ]
+  },
+  'Hydraulique générale': {
+    '2025-2026': [
+      { titre: 'Devoir 1 — Hydraulique en charge', sousTitre: 'Sujet + corrigé type' }
+    ]
+  },
+  'Droits des Travaux publics': {
+    '2023-2024': [
+      { titre: 'Étude de cas — Passation de marchés', sousTitre: 'Sujet uniquement' }
     ]
   }
 };
@@ -216,8 +311,12 @@ let docState = { promo: null, semestre: null, matiereNom: null };
    ========================================================================== */
 function promoCardHTML(promoKey){
   const p = PROMOTIONS_DATA[promoKey];
+  const media = p.photo
+    ? `<div class="promo-card-media"><img src="${p.photo}" alt="Étudiants de la promotion ${p.nom}, Génie Civil — EPAC" loading="lazy"></div>`
+    : '';
   return `
     <a href="#" class="matiere-card" data-doc-open="${promoKey}">
+      ${media}
       <span class="matiere-card-niveau">${p.annee} <span class="promo-effectif">· ${p.effectif} étudiants</span></span>
       <h3>${p.nom}</h3>
       <p>Semestres ${p.semestres.join(' & ')}</p>
@@ -315,7 +414,7 @@ function renderMatiereGrid(){
   const data = MATIERES_DATA[docState.promo]?.[docState.semestre];
   if (!container || !data) return;
 
-  const categories = ['ucf', 'uds', 'um'];
+  const categories = ['ucf', 'uds', 'um', 'ucg'];
   const blocs = categories.map(catKey => {
     const items = data[catKey] || [];
     if (!items.length) return '';
@@ -399,19 +498,9 @@ function showDocEpreuves(matiereNom){
    ========================================================================== */
 const ACTUALITES = [
   {
-    badge: 'Annonce', couleur: 'bleu', date: 'Mars 2026',
+    badge: 'Annonce', couleur: 'bleu', date: 'Février 2026',
     titre: 'Lancement de la nouvelle plateforme de documentation',
     texte: 'CARET-GC met désormais à disposition l\u2019ensemble des épreuves passées des promotions GC3 à GC5 sur une plateforme accessible à tout moment.'
-  },
-  {
-    badge: 'Académique', couleur: 'rouge', date: 'Février 2026',
-    titre: 'Rencontre mentors — GC4/GC5 vers GC3',
-    texte: 'Une rencontre de présentation a réuni les mentors de GC4 et GC5 avec les étudiants de GC3, chacun orienté vers un mentor selon sa spécialité.'
-  },
-  {
-    badge: 'Académique', couleur: 'verte', date: 'Janvier 2026',
-    titre: 'Les travaux dirigés se poursuivent',
-    texte: 'Les séances de TD restent d\u2019actualité et se poursuivent tout au long du semestre pour accompagner les étudiants dans les matières clés.'
   }
 ];
 
@@ -436,8 +525,71 @@ function renderActualites(){
 }
 
 /* ==========================================================================
-   7. Recherche rapide du Hero + filtres de la Bibliothèque (résultats)
+   7. Recherche rapide du Hero (dynamique, générée depuis EPREUVES_DATA)
    ========================================================================== */
+
+// Construit un index plat { titre, sousTitre, matiereNom, code, annee, url }
+// à partir de EPREUVES_DATA + MATIERES_DATA (pour retrouver le code officiel).
+function buildSearchIndex(){
+  const codeByMatiere = {};
+  Object.values(MATIERES_DATA).forEach(semestres => {
+    Object.values(semestres).forEach(categories => {
+      ['ucf', 'uds', 'um', 'ucg'].forEach(cat => {
+        (categories[cat] || []).forEach(m => { codeByMatiere[m.nom] = m.code; });
+      });
+    });
+  });
+
+  const index = [];
+  Object.entries(EPREUVES_DATA).forEach(([matiereNom, annees]) => {
+    Object.entries(annees).forEach(([annee, docs]) => {
+      docs.forEach(doc => {
+        index.push({
+          titre: doc.titre,
+          sousTitre: doc.sousTitre,
+          url: doc.url || '#',
+          matiereNom,
+          annee,
+          code: codeByMatiere[matiereNom] || '—'
+        });
+      });
+    });
+  });
+  return index;
+}
+
+// Raccourcis mis en avant sur l'accueil (un par grand domaine) — la liste
+// complète des matières reste accessible via la recherche texte / Documentation.
+const CHIPS_MATIERES_ACCUEIL = [
+  'Béton armé Initiale',
+  'Résistance des Matériaux Renforcés',
+  'Hydraulique générale',
+  'Géotechnique et Travaux routiers',
+  'Conception et Calcul de Ponts',
+  'Projet de Construction (BA et CM)'
+];
+
+function populateHeroMatiereFilters(){
+  const noms = Array.from(new Set(
+    Object.values(MATIERES_DATA).flatMap(semestres =>
+      Object.values(semestres).flatMap(categories =>
+        ['ucf', 'uds', 'um', 'ucg'].flatMap(cat => (categories[cat] || []).map(m => m.nom))
+      )
+    )
+  )).sort();
+
+  const chipRow = document.getElementById('matiere-chips');
+  if (chipRow){
+    const activeValue = chipRow.querySelector('.chip.is-active')?.dataset.matiere || 'Toutes les matières';
+    const chipsNoms = CHIPS_MATIERES_ACCUEIL.filter(nom => noms.includes(nom));
+    chipRow.innerHTML = '<button type="button" class="chip is-active" data-matiere="Toutes les matières">Toutes</button>' +
+      chipsNoms.map(nom => `<button type="button" class="chip" data-matiere="${nom}">${nom}</button>`).join('');
+    chipRow.querySelectorAll('.chip').forEach(chip => {
+      chip.classList.toggle('is-active', chip.dataset.matiere === activeValue);
+    });
+  }
+}
+
 function initHeroSearch(){
   const form = document.querySelector('.search-card');
   if (!form) return;
@@ -448,12 +600,8 @@ function initHeroSearch(){
     document.getElementById('bibliotheque')?.scrollIntoView({ behavior: 'smooth' });
   });
 
-  document.getElementById('q')?.addEventListener('input', applyLibraryFilters);
-  document.getElementById('matiere')?.addEventListener('change', () => {
-    syncChipsWithSelect();
-    applyLibraryFilters();
-  });
-  document.getElementById('annee')?.addEventListener('change', applyLibraryFilters);
+  document.getElementById('q')?.addEventListener('input', () => applyLibraryFilters());
+  document.getElementById('annee')?.addEventListener('change', () => applyLibraryFilters());
 }
 
 function initLibraryFilters(){
@@ -467,54 +615,60 @@ function initLibraryFilters(){
     chipRow.querySelectorAll('.chip').forEach(c => c.classList.remove('is-active'));
     chip.classList.add('is-active');
 
-    const heroMatiere = document.getElementById('matiere');
-    if (heroMatiere){
-      const chipValue = chip.dataset.matiere;
-      const optionExists = Array.from(heroMatiere.options).some(o => o.value === chipValue);
-      heroMatiere.value = optionExists ? chipValue : 'Toutes les matières';
-    }
-
     applyLibraryFilters(chip.dataset.matiere);
   });
 }
 
-function syncChipsWithSelect(){
-  const heroMatiere = document.getElementById('matiere');
-  const chipRow = document.getElementById('matiere-chips');
-  if (!heroMatiere || !chipRow) return;
-
-  const value = heroMatiere.value;
-  chipRow.querySelectorAll('.chip').forEach(chip => {
-    chip.classList.toggle('is-active', chip.dataset.matiere === value);
-  });
-}
-
+// N'affiche des résultats QUE si une recherche/un filtre est actif — jamais
+// de liste figée par défaut.
 function applyLibraryFilters(chipMatiere){
+  const body = document.getElementById('search-results-body');
+  const noResults = document.getElementById('no-results');
+  if (!body) return;
+
   const query = (document.getElementById('q')?.value || '').trim().toLowerCase();
-  const matiere = chipMatiere || document.getElementById('matiere')?.value || 'Toutes les matières';
+  const matiere = chipMatiere || document.querySelector('#matiere-chips .chip.is-active')?.dataset.matiere || 'Toutes les matières';
   const annee = document.getElementById('annee')?.value || 'Toutes';
 
-  const rows = document.querySelectorAll('.epreuve-row:not(.epreuve-row-head)');
-  let visibleCount = 0;
+  const hasActiveFilter = query !== '' || matiere !== 'Toutes les matières' || annee !== 'Toutes';
 
-  rows.forEach(row => {
-    const rowMatiere = row.dataset.matiere || '';
-    const rowAnnee = row.dataset.annee || '';
-    const rowTitre = row.dataset.titre || '';
+  if (!hasActiveFilter){
+    body.innerHTML = '';
+    noResults.hidden = false;
+    noResults.textContent = 'Tapez une matière, un mot-clé, ou choisissez un filtre ci-dessus pour voir les épreuves correspondantes.';
+    return;
+  }
 
-    const matchMatiere = matiere === 'Toutes les matières' || rowMatiere === matiere;
-    const matchAnnee = annee === 'Toutes' || rowAnnee === annee;
-    const matchQuery = query === '' || rowTitre.includes(query) || rowMatiere.toLowerCase().includes(query);
-
-    const visible = matchMatiere && matchAnnee && matchQuery;
-    row.hidden = !visible;
-    if (visible) visibleCount++;
+  const index = buildSearchIndex();
+  const results = index.filter(item => {
+    const matchMatiere = matiere === 'Toutes les matières' || item.matiereNom === matiere;
+    const matchAnnee = annee === 'Toutes' || item.annee === annee;
+    const haystack = (item.titre + ' ' + item.matiereNom).toLowerCase();
+    const matchQuery = query === '' || haystack.includes(query);
+    return matchMatiere && matchAnnee && matchQuery;
   });
 
-  const noResults = document.getElementById('no-results');
-  if (noResults){
-    noResults.hidden = visibleCount !== 0;
+  if (results.length === 0){
+    body.innerHTML = '';
+    noResults.hidden = false;
+    noResults.textContent = 'Aucune épreuve ne correspond à ces critères.';
+    return;
   }
+
+  noResults.hidden = true;
+  body.innerHTML = results.map(r => `
+    <div class="epreuve-row">
+      <span class="code">${r.code}</span>
+      <div class="titre">
+        ${r.titre}
+        <span class="sous-titre">${r.sousTitre}</span>
+      </div>
+      <span class="matiere-tag">${r.matiereNom}</span>
+      <span class="session">${r.annee}</span>
+      <div class="row-actions">
+        <a href="${r.url}" class="dl-btn" target="_blank" rel="noopener" aria-label="Télécharger — ${r.titre}">PDF ↓</a>
+      </div>
+    </div>`).join('');
 }
 
 /* ==========================================================================
@@ -595,6 +749,8 @@ function refreshAdminViews(){
   renderAdminMatiereTable();
   renderAdminEpreuveTable();
   populateEpreuveMatiereSelect();
+  populateHeroMatiereFilters();
+  applyLibraryFilters();
   if (docState.promo && docState.semestre) renderMatiereGrid();
 }
 
@@ -691,7 +847,7 @@ function renderAdminMatiereTable(){
   const rows = [];
   Object.entries(MATIERES_DATA).forEach(([promo, semestres]) => {
     Object.entries(semestres).forEach(([semestre, categories]) => {
-      ['ucf', 'uds', 'um'].forEach(cat => {
+      ['ucf', 'uds', 'um', 'ucg'].forEach(cat => {
         (categories[cat] || []).forEach((m, index) => {
           rows.push({ promo, semestre, cat, index, m });
         });
@@ -740,7 +896,7 @@ function populateEpreuveMatiereSelect(){
   const noms = new Set();
   Object.values(MATIERES_DATA).forEach(semestres => {
     Object.values(semestres).forEach(categories => {
-      ['ucf', 'uds', 'um'].forEach(cat => (categories[cat] || []).forEach(m => noms.add(m.nom)));
+      ['ucf', 'uds', 'um', 'ucg'].forEach(cat => (categories[cat] || []).forEach(m => noms.add(m.nom)));
     });
   });
 
