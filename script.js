@@ -68,8 +68,15 @@ function setupCarousel(carousel){
   const nextBtn = carousel.querySelector('[data-carousel-next]');
   if (!track || !prevBtn || !nextBtn) return;
 
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let autoplayTimer = null;
+
+  function isScrollable(){
+    return track.scrollWidth > track.clientWidth + 4;
+  }
+
   function updateArrows(){
-    const canScroll = track.scrollWidth > track.clientWidth + 4;
+    const canScroll = isScrollable();
     prevBtn.hidden = !canScroll || track.scrollLeft <= 4;
     nextBtn.hidden = !canScroll || track.scrollLeft >= track.scrollWidth - track.clientWidth - 4;
   }
@@ -81,14 +88,41 @@ function setupCarousel(carousel){
     track.scrollBy({ left: direction * amount, behavior: 'smooth' });
   }
 
-  prevBtn.addEventListener('click', () => scrollByOneCard(-1));
-  nextBtn.addEventListener('click', () => scrollByOneCard(1));
+  function stopAutoplay(){
+    if (autoplayTimer) clearInterval(autoplayTimer);
+    autoplayTimer = null;
+  }
+
+  function startAutoplay(){
+    stopAutoplay();
+    if (reduceMotion || !isScrollable()) return;
+    autoplayTimer = setInterval(() => {
+      const atEnd = track.scrollLeft >= track.scrollWidth - track.clientWidth - 4;
+      if (atEnd){
+        track.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        scrollByOneCard(1);
+      }
+    }, 1500);
+  }
+
+  prevBtn.addEventListener('click', () => { scrollByOneCard(-1); startAutoplay(); });
+  nextBtn.addEventListener('click', () => { scrollByOneCard(1); startAutoplay(); });
   track.addEventListener('scroll', updateArrows);
-  window.addEventListener('resize', updateArrows);
+
+  // Pause au survol / au contact tactile pour ne pas gêner la lecture,
+  // reprend ensuite tout seul.
+  carousel.addEventListener('mouseenter', stopAutoplay);
+  carousel.addEventListener('mouseleave', startAutoplay);
+  carousel.addEventListener('touchstart', stopAutoplay, { passive: true });
+  carousel.addEventListener('touchend', () => setTimeout(startAutoplay, 3000), { passive: true });
+
+  window.addEventListener('resize', () => { updateArrows(); startAutoplay(); });
 
   updateArrows();
+  startAutoplay();
   // Filet de sécurité si le contenu est injecté juste après (ex. Actualités).
-  setTimeout(updateArrows, 300);
+  setTimeout(() => { updateArrows(); startAutoplay(); }, 300);
 }
 
 /* ==========================================================================
