@@ -381,9 +381,16 @@ img{ max-width: 100%; display: block; }
 /* --- Colonne des chiffres clés --- */
 .hero-stats{
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 60px;
+  flex-direction: row !important; /* Force l'alignement sur une seule ligne */
+  justify-content: center;
+  align-items: stretch;
+  gap: 1.5rem;
+  width: 100%;
+  margin: 1.5rem 0;
+}
+.hero-stats .stat-card {
+  flex: 1; /* Chaque carte prend la même largeur */
+  min-width: 0;
 }
 .stat-card{
   background: var(--blanc);
@@ -423,6 +430,40 @@ img{ max-width: 100%; display: block; }
   .search-submit{ padding: 14px; }
   .hero-actions{ flex-direction: column; }
   .hero-actions .btn{ width: 100%; }
+  /* --- Plus de fond blanc, de bordure ni d'ombre sur les 3 chiffres — 
+  juste le texte, directement sur la photo du hero.
+Le texte passe en blanc (au lieu de bleu foncé) puisqu'il n'y a plus 
+de carte blanche derrière pour faire contraste — il doit maintenant 
+se détacher directement du fond photo sombre.
+Les 3 chiffres se mettent côte à côte sur une seule ligne
+ au lieu de 3 blocs empilés — ça règle directement le problème 
+ de hauteur en trop qui forçait le défilement. --- */
+    .hero-stats{
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 28px;
+  }
+  .stat-card{
+    background: transparent;
+    border: none;
+    border-left: none;
+    box-shadow: none;
+    padding: 0;
+    flex: 1 1 0;
+    text-align: center;
+  }
+  .stat-number{
+    color: var(--blanc);
+    font-size: 1.35rem;
+  }
+  .stat-label{
+    color: rgba(255,255,255,0.85);
+    font-size: 0.7rem;
+    margin-top: 2px;
+    line-height: 1.3;
+  }
 }
 
 /* ==========================================================================

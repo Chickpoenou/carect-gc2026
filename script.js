@@ -665,6 +665,14 @@ function applyLibraryFilters(chipMatiere){
   const annee = document.getElementById('annee')?.value || 'Toutes';
 
   const hasActiveFilter = query !== '' || matiere !== 'Toutes les matières' || annee !== 'Toutes';
+// dès que tu tapes quelque chose et lances la recherche, le titre passe de "Résultats" à 
+// par exemple "Résultats pour « béton armé »" — le lien entre ce que tu as tapé en haut et 
+// ce qui s'affiche en bas devient visuellement évident, sans avoir à deviner..
+
+    const titre = document.getElementById('resultats-titre');
+  if (titre){
+    titre.textContent = hasActiveFilter ? `Résultats pour « ${query || matiere}${query && annee !== 'Toutes' ? ' · ' + annee : ''} »` : 'Résultats';
+  }
 
   if (!hasActiveFilter){
     body.innerHTML = '';
