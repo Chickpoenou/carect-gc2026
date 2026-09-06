@@ -46,7 +46,7 @@ img{ max-width: 100%; display: block; }
 }
 
 .wrap{
-  max-width: 1180px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0 32px;
 }
@@ -264,20 +264,26 @@ img{ max-width: 100%; display: block; }
   top: 0;
   left: 0;
   right: 0;
-  height: 515px;
+  height: 700px;
   z-index: -1;
   mask-image: linear-gradient(to bottom, black 92%, transparent 100%);
--webkit-mask-image: linear-gradient(to bottom, black 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 92%, transparent 100%);
 }
 .hero-bg-slide{
   position: absolute;
   inset: 0;
   background-size: cover;
-    background-position: center 50%;
+  background-position: center top;
   opacity: 0;
   transition: opacity 1.4s ease;
 }
-.hero-bg-slide.is-active{ opacity: 1; }
+.hero-bg-slide.is-active{ 
+  opacity: 1;
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center top;
+  transition: opacity 1.4s ease; }
 
 .hero-bg-overlay{
   position: absolute;
@@ -285,11 +291,21 @@ img{ max-width: 100%; display: block; }
   background: linear-gradient(180deg, rgba(26,37,47,.62) 0%, rgba(26,37,47,.50) 45%, rgba(26,37,47,.68) 100%);
 }
 
+/* Colonne unique centrée (texte + boutons + recherche + cartes) */
 .hero-inner{
-  display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 48px;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 28px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.hero-content{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .eyebrow{
@@ -327,8 +343,16 @@ img{ max-width: 100%; display: block; }
   text-shadow: 0 1px 10px rgba(0,0,0,0.4);
 }
 
+.hero-actions{
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 26px;
+}
+
 /* --- Carte de recherche --- */
 .search-card{
+  width: 100%;
   margin-top: 32px;
   background: var(--blanc);
   border: 1px solid var(--gris-bordure);
@@ -345,11 +369,12 @@ img{ max-width: 100%; display: block; }
   justify-content: center;
   padding: 12px 18px;
   border-right: 1px solid var(--gris-bordure);
+  text-align: left;
 }
 .search-field label{
   font-family: var(--font-mono);
   font-size: 0.80rem;
-  color: var(--texte-attenue);
+  color: #000000;
   margin-bottom: 4px;
 }
 .search-field input,
@@ -359,7 +384,7 @@ img{ max-width: 100%; display: block; }
   font-family: var(--font-corps);
   font-size: 1.1rem;
   font-weight: 500;
-  color: var(--texte-principal);
+  color: #333333;
   width: 100%;
 }
 .search-field input:focus,
@@ -372,33 +397,26 @@ img{ max-width: 100%; display: block; }
   font-size: 1.1rem;
 }
 
-.hero-actions{
-  display: flex;
-  gap: 14px;
-  margin-top: 26px;
-}
-
-/* --- Colonne des chiffres clés --- */
+/* --- Chiffres clés : ligne horizontale centrée --- */
 .hero-stats{
   display: flex;
-  flex-direction: row !important; /* Force l'alignement sur une seule ligne */
+  flex-direction: row;
+  flex-wrap: wrap;
   justify-content: center;
-  align-items: stretch;
-  gap: 1.5rem;
+  gap: 16px;
   width: 100%;
-  margin: 1.5rem 0;
-}
-.hero-stats .stat-card {
-  flex: 1; /* Chaque carte prend la même largeur */
-  min-width: 0;
+  margin-top: 4px;
 }
 .stat-card{
+  flex: 1 1 220px;
+  max-width: 260px;
   background: var(--blanc);
   border: 1px solid var(--gris-bordure);
   border-radius: var(--rayon);
   padding: 20px 22px;
   border-left: 3px solid var(--bleu-roi);
   box-shadow: 0 10px 26px rgba(0,0,0,0.16);
+  text-align: left;
 }
 .stat-number{
   display: block;
@@ -414,57 +432,47 @@ img{ max-width: 100%; display: block; }
   font-size: 0.9rem;
   color: var(--texte-attenue);
 }
-
-@media (max-width: 860px){
-  .hero-inner{ grid-template-columns: 1fr; }
-  .hero-stats{
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-  .stat-card{ flex: 1 1 200px; }
+@keyframes floatCard{
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
+.hero-stats .stat-card{
+  animation: floatCard 3.2s ease-in-out infinite;
+}
+.hero-stats .stat-card:nth-child(2){ animation-delay: 0.4s; }
+.hero-stats .stat-card:nth-child(3){ animation-delay: 0.8s; }
 
 @media (max-width: 640px){
   .search-card{ grid-template-columns: 1fr; }
   .search-field{ border-right: none; border-bottom: 1px solid var(--gris-bordure); }
   .search-submit{ padding: 14px; }
-  .hero-actions{ flex-direction: column; }
+  .hero-actions{ flex-direction: column; width: 100%; }
   .hero-actions .btn{ width: 100%; }
-  /* --- Plus de fond blanc, de bordure ni d'ombre sur les 3 chiffres — 
-  juste le texte, directement sur la photo du hero.
-Le texte passe en blanc (au lieu de bleu foncé) puisqu'il n'y a plus 
-de carte blanche derrière pour faire contraste — il doit maintenant 
-se détacher directement du fond photo sombre.
-Les 3 chiffres se mettent côte à côte sur une seule ligne
- au lieu de 3 blocs empilés — ça règle directement le problème 
- de hauteur en trop qui forçait le défilement. --- */
-    .hero-stats{
-    flex-direction: row;
+
+  .hero-stats{
     flex-wrap: nowrap;
-    justify-content: space-between;
     gap: 10px;
-    margin-top: 28px;
   }
   .stat-card{
-    background: rgba(255, 255, 255, 0.85);  /* ← AJOUT : fond noir semi-transparent */
-    border: 1px solid rgba(255, 255, 255, 0.15);  /* ← AJOUT : bordure fine blanche */
-    border-radius: 8px;  /* ← AJOUT : coins arrondis */
-    padding: 10px 8px;  /* ← AJOUT : un peu d'espace interne */
+    background: rgba(255,255,255,0.85);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-left: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 10px 8px;
     flex: 1 1 0;
+    max-width: none;
     text-align: center;
   }
   .stat-number{
-    color: #1a252f !important;  /* ← NOIR (bleu foncé) */
+    color: var(--bleu-roi-fonce);
     font-size: 1.35rem;
-    font-weight: 900;
   }
   .stat-label{
-    color: #333333 !important;  /* ← NOIR (gris très foncé) */
+    color: var(--texte-principal);
     font-size: 0.7rem;
     margin-top: 2px;
     line-height: 1.3;
-    font-weight: 500;
   }
 }
 
