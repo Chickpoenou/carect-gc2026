@@ -446,11 +446,11 @@ Les 3 chiffres se mettent côte à côte sur une seule ligne
     margin-top: 28px;
   }
   .stat-card{
-    background: transparent;
-    border: none;
-    border-left: none;
+    background: rgba(0, 0, 0, 0.5);  /* ← AJOUT : fond noir semi-transparent */
+    border: 1px solid rgba(255, 255, 255, 0.15);  /* ← AJOUT : bordure fine blanche */
+    border-radius: 8px;  /* ← AJOUT : coins arrondis */
+    padding: 10px 8px;  /* ← AJOUT : un peu d'espace interne */
     box-shadow: none;
-    padding: 0;
     flex: 1 1 0;
     text-align: center;
   }
@@ -459,7 +459,7 @@ Les 3 chiffres se mettent côte à côte sur une seule ligne
     font-size: 1.35rem;
   }
   .stat-label{
-    color: rgba(255,255,255,0.85);
+    color: rgba(255, 255, 255, 0.95);
     font-size: 0.7rem;
     margin-top: 2px;
     line-height: 1.3;
